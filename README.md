@@ -1,96 +1,160 @@
-# Meet2Action  
+# Meet2Action
+
 ### A Decision-Centric Agent-Orchestrated System for Extracting Actionable Insights from Meetings
 
-Meet2Action is a multi-agent AI platform that transforms meeting inputs (audio, video, transcript, or raw text) into structured, decision-centric actionable insights.
 
-Unlike traditional meeting summarization tools, Meet2Action focuses on extracting decisions, action items, owners, deadlines, and reasoning — making meetings executable rather than just summarized.
+## Overview
 
----
+Meet2Action is a local, GPU-accelerated AI system that transforms meeting inputs (audio, video, text) into structured, decision-ready outputs.
 
-## 🚀 Problem Statement
+Instead of merely summarizing meetings, the system extracts:
 
-Most existing tools:
-- Generate summaries but do not extract executable actions
-- Extract action items without full system-level integration
-- Treat ASR, summarization, and task extraction as fragmented pipelines
-- Provide limited explainability
+-   Core Meeting Intent   
+-   Structured Topic-Based Summary   
+-   Action Matrix (Task, Assignee, Deadline, Priority)   
+-   Project Context Detection   
 
-Meet2Action addresses these gaps by orchestrating specialized AI agents that collaborate to convert meetings into structured decision intelligence.
+The system is built with an agent-orchestrated backend and a modern frontend interface, optimized for local inference using Faster-Whisper and Ollama.
 
----
+------------------------------------------------------------------------
 
-## 🧠 System Overview
+## System Architecture
 
-Meet2Action follows a multi-agent architecture where each agent handles a specialized responsibility:
+    Meeting Input (Audio / Text)
+            ↓
+    Faster-Whisper (GPU ASR)
+            ↓
+    Transcript
+            ↓
+    Qwen 7B (Ollama)
+            ↓
+    Strict JSON Output
+            ↓
+    Response Mapper
+            ↓
+    Frontend Rendering
 
-1. **Input Processing Agent**
-   - Accepts audio, video, or text
-   - Performs ASR (if required)
-   - Normalizes and cleans transcripts
+------------------------------------------------------------------------
 
-2. **Summarization Agent**
-   - Generates structured meeting summaries
-   - Identifies key discussion themes
+## Key Features
 
-3. **Decision Extraction Agent**
-   - Detects explicit and implicit decisions
-   - Classifies decision types
+-   GPU-accelerated Speech-to-Text using Faster-Whisper   
+-   Local LLM inference via Ollama (Qwen 2.5 7B / 3B)   
+-   Strict JSON enforcement from LLM   
+-   Markdown stripping and structured validation   
+-   Modular agent-based backend architecture   
+-   Clean React + TypeScript frontend   
 
-4. **Action Item Agent**
-   - Extracts tasks
-   - Assigns owners
-   - Detects deadlines (if mentioned)
+------------------------------------------------------------------------
 
-5. **Explainability Agent**
-   - Links outputs back to transcript segments
-   - Provides reasoning traces
+## Tech Stack
 
-6. **Output Structuring Agent**
-   - Formats results into structured JSON / UI-friendly format
+### Backend
 
----
+-   FastAPI
+-   Faster-Whisper (CTranslate2 backend)
+-   PyTorch (cu118 build)
+-   Ollama (Qwen 2.5 7B / 3B)
+-   Python 3.10+
 
-## 🔁 Workflow
+### Frontend
 
-Input (Audio/Video/Text)  
-→ Transcription (if needed)  
-→ Multi-Agent Processing  
-→ Decision & Action Structuring  
-→ Explainable Output  
+-   React
+-   TypeScript
+-   Vite
+-   TailwindCSS
 
----
+### Hardware
 
-## 🛠️ Technologies Used
+-   RTX 2050 (4GB VRAM tested)
+-   CUDA via PyTorch wheels (no manual CUDA toolkit required)
 
-- Python
-- Streamlit (Frontend)
-- LLM APIs (pluggable inference backend)
-- ASR Models (for audio/video input)
-- LangChain (optional orchestration)
-- JSON-based structured output pipeline
+------------------------------------------------------------------------
 
----
+## Performance Benchmarks (Local)
 
-## 📦 Features
+Test Case: 7-minute meeting audio
 
-- 🎙 Multi-format input (audio, video, transcript, text)
-- 🧾 Structured summary generation
-- ✅ Decision extraction
-- 📌 Action item identification
-- 👤 Owner and deadline detection
-- 🔍 Explainable outputs
-- 🧩 Modular agent architecture
-- 🔄 Swappable LLM backend
+-   Faster-Whisper (GPU): \~42 seconds\
+-   Qwen 7B inference: \~28--30 seconds\
+-   Total end-to-end processing: \~70--75 seconds
 
----
+------------------------------------------------------------------------
 
-## 🏗️ Architecture Design Principles
+## Installation Guide
 
-- Agent-Oriented Design
-- Modular and Replaceable Components
-- Structured Output Enforcement
-- Explainability-first approach
-- Backend-agnostic LLM integration
+### 1. Clone Repository
 
-}
+```
+git clone https://github.com/saaket2006/meet2action-an-intelligent-platform.git
+cd meet2action
+```
 
+------------------------------------------------------------------------
+
+### 2. Backend Setup
+
+```
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Install GPU-enabled PyTorch:
+
+```
+pip uninstall torch -y
+pip install torch --index-url https://download.pytorch.org/whl/cu118
+```
+
+Install Faster-Whisper:
+
+```
+pip install faster-whisper
+```
+
+------------------------------------------------------------------------
+
+### 3. Install Ollama
+
+Download from: https://ollama.com
+
+Pull Qwen model:
+
+```
+ollama pull qwen2.5:7b
+```
+
+(Optional lighter model)
+
+```
+ollama pull qwen2.5:3b
+```
+
+------------------------------------------------------------------------
+
+### 4. Run Backend
+
+```
+uvicorn app.main:app --reload
+```
+
+API Docs: http://127.0.0.1:8000/docs
+
+------------------------------------------------------------------------
+
+### 5. Run Frontend
+
+```
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs at: http://localhost:3000
+
+------------------------------------------------------------------------
+
+Saaket Baldawa   
+Meet2Action -- Intelligent Meeting Intelligence Platform
