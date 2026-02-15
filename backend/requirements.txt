@@ -1,0 +1,5 @@
+python-dotenv
+fastapi
+openai-whisper
+faster-whisper
+ffmpeg-python
