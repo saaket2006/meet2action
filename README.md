@@ -1,6 +1,6 @@
 # Meet2Action
 
-### A Decision-Centric Agent-Orchestrated System for Extracting Actionable Insights from Meetings
+### An Intent-Centric Agent-Orchestrated System for Extracting Actionable Insights from Meetings
 
 
 ## Overview
