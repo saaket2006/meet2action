@@ -101,11 +101,11 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Install CUDA toolkit for Ctranslate2 (version 4.7.x):
+#### Install CUDA toolkit for Ctranslate2 (version 4.7.x):
 
 Download from: https://developer.nvidia.com/cuda-12-4-0-download-archive
 
-Install Faster-Whisper:
+#### Install Faster-Whisper:
 
 ```
 pip install faster-whisper
