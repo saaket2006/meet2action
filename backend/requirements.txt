@@ -1,4 +1,6 @@
+uvicorn
+requests
+python-multipart
 python-dotenv
 fastapi
-faster-whisper
 ffmpeg-python

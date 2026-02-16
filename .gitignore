@@ -9,6 +9,7 @@ backend/venv/
 backend/temp/
 *.mp4
 *.mp3
+*test_gpu.py
 
 # Node / Frontend
 node_modules/
