@@ -53,7 +53,7 @@ The system is built with an agent-orchestrated backend and a modern frontend int
 
 -   FastAPI
 -   Faster-Whisper (CTranslate2 backend)
--   PyTorch (cu118 build)
+-   NVIDIA CUDA 12.x Toolkit
 -   Ollama (Qwen 2.5 7B / 3B)
 -   Python 3.10+
 
@@ -67,7 +67,7 @@ The system is built with an agent-orchestrated backend and a modern frontend int
 ### Hardware
 
 -   RTX 2050 (4GB VRAM tested)
--   CUDA via PyTorch wheels (no manual CUDA toolkit required)
+-   CUDA 12.4 toolkit
 
 ------------------------------------------------------------------------
 
@@ -75,9 +75,9 @@ The system is built with an agent-orchestrated backend and a modern frontend int
 
 Test Case: 7-minute meeting audio
 
--   Faster-Whisper (GPU): \~42 seconds\
--   Qwen 7B inference: \~28--30 seconds\
--   Total end-to-end processing: \~70--75 seconds
+-   Faster-Whisper (GPU): ~42 seconds   
+-   Qwen 7B inference: ~28--30 seconds   
+-   Total end-to-end processing: ~70--75 seconds
 
 ------------------------------------------------------------------------
 
@@ -101,12 +101,9 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-Install GPU-enabled PyTorch:
+Install CUDA toolkit for Ctranslate2 (version 4.7.x):
 
-```
-pip uninstall torch -y
-pip install torch --index-url https://download.pytorch.org/whl/cu118
-```
+Download from: https://developer.nvidia.com/cuda-12-4-0-download-archive
 
 Install Faster-Whisper:
 
