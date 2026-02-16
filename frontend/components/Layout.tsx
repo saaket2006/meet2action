@@ -60,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeView, onNavigate, onNew
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 px-6 text-center text-slate-500 text-sm">
-        <p>&copy; 2026 Meet2Action Intelligent Platform. Powering the future of productive meetings.</p>
+        <p>&copy; 2026 Meet2Action. Powering the future of productive meetings.</p>
       </footer>
     </div>
   );

@@ -155,8 +155,7 @@ const App: React.FC = () => {
                     Meetings to <span className="gradient-text">Actions</span>
                   </h2>
                   <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                    Experience the futuristic intelligence that transforms every conversation into strategic progress.
-                    Extract intent, tasks, and summaries with precision.
+                    An Intent-Centric Agent Orchestrated Platform that transforms your meetings into actionable insights, seamlessly integrating with your workflow.
                   </p>
                   
                   <div className="max-w-2xl mx-auto space-y-4">
@@ -220,8 +219,8 @@ const App: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                   {[
-                    { title: 'Intelligent Intent', desc: 'Auto-detect the purpose of every discussion.', icon: '🎯' },
-                    { title: 'Task Extraction', desc: 'Identify assignees and deadlines instantly.', icon: '⚡' },
+                    { title: 'Intelligent Intent', desc: 'Auto-detect the purpose of every discussion.', icon: '🧠' },
+                    { title: 'Action Extraction', desc: 'Identify assignees and deadlines of tasks instantly.', icon: '🎯' },
                     { title: 'App Integration', desc: 'Sync directly with Trello, Google Calendar, and many more.', icon: '🔗' },
                   ].map((feature, i) => (
                     <div key={i} className="glass p-8 rounded-3xl text-left hover:border-white/20 transition-all group">

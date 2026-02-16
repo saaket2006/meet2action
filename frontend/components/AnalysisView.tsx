@@ -16,6 +16,17 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data }) => {
   const exportToCalendar = (item: ActionItem) => {
     alert(`📅 CALENDAR SYNC: "${item.task}" scheduled for ${item.deadline || 'ASAP'}.`);
   };
+  
+  const sortedActions = [...data.actionItems].sort((a, b) => {
+    if (!a.deadline && !b.deadline) return 0;
+    if (!a.deadline) return 1;   // push empty deadlines down
+    if (!b.deadline) return -1;
+
+    const dateA = new Date(a.deadline).getTime();
+    const dateB = new Date(b.deadline).getTime();
+
+    return dateA - dateB; // earliest first
+  });
 
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
@@ -114,7 +125,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data }) => {
           {/* ACTION MATRIX TAB */}
           {activeTab === 'actions' && (
             <div className="space-y-8">
-              {data.actionItems.map((item, i) => {
+              {sortedActions.map((item, i) => {
                 const id = `action-${i}`;
 
                 return (
@@ -133,7 +144,7 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data }) => {
                         </span>
 
                         <span className="text-xs text-slate-300 uppercase tracking-wider">
-                          Assignee : {item.assignee}
+                          Assignee : {item.assignee || "Common to all"}
                         </span>
                       </div>
 
@@ -147,14 +158,14 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data }) => {
                           </button>
                         )}
 
-                        {item.canExport && (
-                          <button
-                            onClick={() => exportToCalendar(item)}
-                            className="text-xs px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition"
-                          >
-                            Sync
-                          </button>
-                        )}
+                        
+                        <button
+                          onClick={() => exportToCalendar(item)}
+                          className="text-xs px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white transition"
+                        >
+                          Sync
+                        </button>
+                        
                       </div>
                     </div>
 
