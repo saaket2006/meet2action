@@ -132,8 +132,8 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data }) => {
                           {item.priority} Priority
                         </span>
 
-                        <span className="text-xs text-slate-500 uppercase tracking-wider">
-                          {item.assignee}
+                        <span className="text-xs text-slate-300 uppercase tracking-wider">
+                          Assignee : {item.assignee}
                         </span>
                       </div>
 
