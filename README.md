@@ -150,8 +150,3 @@ npm run dev
 ```
 
 Frontend runs at: http://localhost:3000
-
-------------------------------------------------------------------------
-
-Saaket Baldawa   
-Meet2Action -- Intelligent Meeting Intelligence Platform
