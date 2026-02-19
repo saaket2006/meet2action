@@ -8,9 +8,10 @@ from app.schemas.agent_outputs import (
     ValidationOutput,
 )
 
-def map_to_api_response(intent, summary, actions, validation, project_context) -> dict:
+def map_to_api_response(title, intent, summary, actions, validation, project_context) -> dict:
 
     return {
+        "title": title or "Meeting Analysis",
         "intent": intent,
         "summary": summary or [],
         "actionItems": actions or [],

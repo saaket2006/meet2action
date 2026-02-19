@@ -9,16 +9,19 @@ export interface ActionItem {
 }
 
 export interface SummaryPoint {
+  id?: string;
   topic: string;
   content: string;
   reasoning?: string; // provided by backend agent
 }
 
 export interface MeetingAnalysis {
+  title?: string;
   intent: string;
   summary: SummaryPoint[];
   actionItems: ActionItem[];
   projectContextFound: boolean;
+  sourceName?: string;
 }
 
 export interface SavedAnalysis extends MeetingAnalysis {
