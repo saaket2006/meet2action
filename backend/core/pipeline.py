@@ -30,6 +30,7 @@ def run_pipeline(transcript: str, llm) -> dict:
     You are an expert meeting intelligence system.
     Analyze the meeting transcript and return STRICT JSON with this structure:
     {{
+    "title": "Short, catchy meeting title (5-7 words)",
     "intent": "string",
     "summary": [
         {{
@@ -50,6 +51,7 @@ def run_pipeline(transcript: str, llm) -> dict:
 
     Rules:
     - Return ONLY valid JSON.
+    - "title" should be a professional, short summary of the meeting topic (max 7 words).
     - Summary content should be concise and can contain various valid summarized points that must be well-formed business English along with perfect grammar and punctuation.
     - "intent" must be a professionally written, grammatically correct sentence in Title Case.
     - Action items must be actionable and clearly defined (assignee, task, deadline).
@@ -86,6 +88,7 @@ def run_pipeline(transcript: str, llm) -> dict:
     logger.info(f"Pipeline finished in {total_time:.3f}s")
 
     return map_to_api_response(
+        title=parsed.get("title"),
         intent=parsed.get("intent"),
         summary=parsed.get("summary"),
         actions=parsed.get("actionItems"),

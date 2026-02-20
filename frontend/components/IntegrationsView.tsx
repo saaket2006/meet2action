@@ -1,26 +1,29 @@
 
 import React from 'react';
+import { useAuth } from '../context/AuthContext';
 
 const IntegrationsView: React.FC = () => {
+  const { user } = useAuth();
+
   const integrations = [
     {
       name: 'Google Calendar',
       icon: '📅',
-      status: 'Pending',
+      status: user ? 'Connected' : 'Pending',
       description: 'Automatically schedule meeting action items with detected deadlines into your primary or secondary calendars.',
       features: ['Conflict detection', 'Smart reminders', 'Group invite sync']
     },
     {
       name: 'Trello',
       icon: '📋',
-      status: 'Pending',
+      status: 'Unavailable',
       description: 'Convert meeting tasks into Trello cards. Map assignees to board members and set labels based on priority.',
       features: ['Custom board mapping', 'Label automation', 'Attachment support']
     },
     {
       name: 'Slack',
       icon: '💬',
-      status: 'Pending',
+      status: 'Unavailable',
       description: 'Push meeting summaries and high-priority action items directly to project channels.',
       features: ['Real-time notifications', 'Interactive task buttons', 'Threaded summaries']
     },
@@ -47,10 +50,9 @@ const IntegrationsView: React.FC = () => {
           <div key={i} className="glass p-8 rounded-3xl border border-white/5 hover:border-blue-500/20 transition-all group">
             <div className="flex justify-between items-start mb-6">
               <div className="text-4xl group-hover:scale-110 transition-transform">{item.icon}</div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${
-                item.status === 'Connected' ? 'bg-green-500/10 text-green-400' :
+              <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${item.status === 'Connected' ? 'bg-green-500/10 text-green-400' :
                 item.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-500'
-              }`}>
+                }`}>
                 {item.status}
               </span>
             </div>
@@ -70,10 +72,21 @@ const IntegrationsView: React.FC = () => {
               </ul>
             </div>
             <div className="mt-8">
-              <button className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
-                item.status === 'Connected' ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20'
-              }`}>
-                {item.status === 'Connected' ? 'Configure API' : 'Initialize Connection'}
+              <button
+                onClick={() => {
+                  if (item.name === 'Google Calendar' && !user) {
+                    window.location.href = 'http://localhost:8000/auth/google/login';
+                  }
+                }}
+                disabled={item.status === 'Connected' || item.status === 'Unavailable'}
+                className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${item.status === 'Connected'
+                  ? 'bg-green-500/10 text-green-400 cursor-default border border-green-500/20'
+                  : item.status === 'Unavailable'
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20'
+                  }`}
+              >
+                {item.status === 'Connected' ? 'Connected' : item.status === 'Unavailable' ? 'Coming Soon' : 'Initialize Connection'}
               </button>
             </div>
           </div>

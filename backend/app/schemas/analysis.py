@@ -18,7 +18,14 @@ class ActionItem(BaseModel):
 
 
 class MeetingAnalysisResponse(BaseModel):
+    title: str = "Meeting Analysis"
     intent: str
     summary: List[SummaryPoint]
     actionItems: List[ActionItem]
     projectContextFound: bool
+
+
+class EnhancePointRequest(BaseModel):
+    topic: str
+    content: str
+

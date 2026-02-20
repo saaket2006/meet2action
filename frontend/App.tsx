@@ -6,8 +6,10 @@ import AnalysisView from './components/AnalysisView';
 import IntegrationsView from './components/IntegrationsView';
 import { storageService } from './services/storage';
 import { MeetingAnalysis, FileData, AnalysisStatus, SavedAnalysis, View } from './types';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
 const MOCK_ANALYSIS: MeetingAnalysis = {
+  // ... (keep MOCK_ANALYSIS as is, it's long so just referencing it)
   intent: "Project 'Aether' Sprint Planning and Q3 Roadmap Alignment",
   summary: [
     {
@@ -27,28 +29,28 @@ const MOCK_ANALYSIS: MeetingAnalysis = {
     {
       task: "Complete Edge Node prototype",
       assignee: "Marcus Chen",
-      deadline: "2024-08-15",
+      deadline: "20-02-2026",
       priority: "High",
       canExport: true
     },
     {
       task: "Approve final brand kit and style guide",
       assignee: "Sarah Miller",
-      deadline: "2024-08-05",
+      deadline: "20-02-2026",
       priority: "Medium",
       canExport: true
     },
     {
       task: "Draft Q3 hiring plan for DevOps roles",
       assignee: "Elena Rodriguez",
-      deadline: "2024-08-10",
+      deadline: "22-02-2026",
       priority: "High",
       canExport: true
     },
     {
       task: "Coordinate with security firm for Pen-Testing",
       assignee: "David Park",
-      deadline: "2024-08-20",
+      deadline: "21-02-2026",
       priority: "Low",
       canExport: true
     }
@@ -56,16 +58,22 @@ const MOCK_ANALYSIS: MeetingAnalysis = {
   projectContextFound: true
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [view, setView] = useState<View>('main');
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [analysis, setAnalysis] = useState<MeetingAnalysis | null>(null);
   const [history, setHistory] = useState<SavedAnalysis[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Get user from AuthContext
+  const { user } = useAuth();
+  // Use email as unique ID, or undefined if guest
+  const userId = user?.email;
+
   useEffect(() => {
-    setHistory(storageService.getHistory());
-  }, []);
+    // Reload history when user changes
+    setHistory(storageService.getHistory(userId));
+  }, [userId]);
 
   const handleFileSelect = async (fileData: FileData) => {
     setStatus('analyzing');
@@ -87,8 +95,10 @@ const App: React.FC = () => {
       const result: MeetingAnalysis = await response.json();
 
       setAnalysis(result);
-      storageService.saveAnalysis(result, fileData.name);
-      setHistory(storageService.getHistory());
+      // Use the generated title if available, otherwise fallback to filename
+      const storageName = result.title || fileData.name;
+      storageService.saveAnalysis(result, storageName, userId);
+      setHistory(storageService.getHistory(userId));
       setStatus('success');
     } catch (err) {
       console.error(err);
@@ -96,8 +106,6 @@ const App: React.FC = () => {
       setStatus('error');
     }
   };
-
-
 
   const handleTrySample = () => {
     setStatus('analyzing');
@@ -114,8 +122,8 @@ const App: React.FC = () => {
 
   const handleDeleteHistory = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    storageService.deleteAnalysis(id);
-    setHistory(storageService.getHistory());
+    storageService.deleteAnalysis(id, userId);
+    setHistory(storageService.getHistory(userId));
   };
 
   const reset = () => {
@@ -127,7 +135,6 @@ const App: React.FC = () => {
 
   const handleNavigate = (newView: View) => {
     if (newView === 'main') {
-      // Prompt says: "clicked on the Dashboard option, it must return back to the original landing/home page"
       reset();
     }
     setView(newView);
@@ -137,11 +144,53 @@ const App: React.FC = () => {
   const isError = status === 'error';
   const isAnalyzing = status === 'analyzing';
 
+  const handleAnalysisUpdate = (updatedAnalysis: MeetingAnalysis) => {
+    setAnalysis(updatedAnalysis);
+
+    // Check if this analysis is already saved (has an ID matching one in history)
+    // If we have a 'SavedAnalysis' type in state, use it. But 'analysis' is MeetingAnalysis.
+    // We need to check if we are viewing a history item.
+
+    const currentAnalysisIsSaved = history.some(item =>
+      item.intent === updatedAnalysis.intent &&
+      item.createdAt === (analysis as SavedAnalysis)?.createdAt
+    );
+
+    if (currentAnalysisIsSaved && (analysis as SavedAnalysis)?.id) {
+      // It's an existing item, update it
+      const updatedSaved: SavedAnalysis = {
+        ...updatedAnalysis,
+        id: (analysis as SavedAnalysis).id,
+        createdAt: (analysis as SavedAnalysis).createdAt,
+        sourceName: (analysis as SavedAnalysis).sourceName
+      };
+      storageService.updateAnalysis(updatedSaved, userId);
+    } else {
+      // It's a new or unsaved analysis, save as new? 
+      // Start: For now, if we are in "success" mode after analysis, we already saved it once in handleFileSelect.
+      // So we should find the most recent one or pass the ID. 
+      // Let's rely on finding it in history by content match if ID is missing, or better:
+      // When we setAnalysis in handleFileSelect, we should ideally upgrade it to SavedAnalysis.
+
+      // Simplified approach: If we are viewing history, update. If fresh analysis, update the last entry if it matches.
+      const lastItem = history[0];
+      if (lastItem && lastItem.intent === analysis?.intent) {
+        const updatedSaved: SavedAnalysis = {
+          ...updatedAnalysis,
+          id: lastItem.id,
+          createdAt: lastItem.createdAt,
+          sourceName: lastItem.sourceName
+        };
+        storageService.updateAnalysis(updatedSaved, userId);
+      }
+    }
+    setHistory(storageService.getHistory(userId));
+  };
+
   return (
-    <Layout 
-      activeView={view} 
-      onNavigate={handleNavigate} 
-      onNewSession={reset}
+    <Layout
+      activeView={view}
+      onNavigate={handleNavigate}
     >
       <div className="max-w-6xl mx-auto">
         {view === 'integrations' ? (
@@ -157,7 +206,7 @@ const App: React.FC = () => {
                   <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
                     An Intent-Centric Agent Orchestrated Platform that transforms your meetings into actionable insights, seamlessly integrating with your workflow.
                   </p>
-                  
+
                   <div className="max-w-2xl mx-auto space-y-4">
                     {error && (
                       <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm">
@@ -165,14 +214,14 @@ const App: React.FC = () => {
                       </div>
                     )}
                     <FileUpload onFileSelect={handleFileSelect} isLoading={isAnalyzing} />
-                    
+
                     <div className="flex items-center justify-center gap-4">
                       <div className="h-px bg-slate-800 flex-1"></div>
                       <span className="text-slate-500 text-sm font-medium">OR</span>
                       <div className="h-px bg-slate-800 flex-1"></div>
                     </div>
 
-                    <button 
+                    <button
                       onClick={handleTrySample}
                       disabled={isAnalyzing}
                       className="w-full py-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 text-blue-400 font-semibold hover:bg-blue-500/10 transition-all active:scale-[0.98]"
@@ -190,12 +239,12 @@ const App: React.FC = () => {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {history.map((item) => (
-                        <div 
-                          key={item.id} 
+                        <div
+                          key={item.id}
                           onClick={() => handleViewHistory(item)}
                           className="glass p-6 rounded-3xl cursor-pointer hover:border-blue-500/40 hover:bg-white/5 transition-all group relative"
                         >
-                          <button 
+                          <button
                             onClick={(e) => handleDeleteHistory(e, item.id)}
                             className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-xl transition-all"
                           >
@@ -255,7 +304,7 @@ const App: React.FC = () => {
                     </h3>
                     <p className="text-slate-400">Review extracted and suggested actions</p>
                   </div>
-                  <button 
+                  <button
                     onClick={reset}
                     className="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-full text-sm font-medium transition-all flex items-center gap-2"
                   >
@@ -265,13 +314,22 @@ const App: React.FC = () => {
                     New Session
                   </button>
                 </div>
-                {analysis && <AnalysisView data={analysis} />}
+                {analysis && <AnalysisView data={analysis} onUpdate={handleAnalysisUpdate} />}
               </div>
             )}
           </>
         )}
       </div>
     </Layout>
+  );
+
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
