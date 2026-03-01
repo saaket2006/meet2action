@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, UploadFile, File, Request
 from app.services.pipeline_service import run_analysis
+from fastapi import APIRouter, Depends
 
 router = APIRouter()
 

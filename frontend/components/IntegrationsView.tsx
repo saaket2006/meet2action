@@ -37,58 +37,67 @@ const IntegrationsView: React.FC = () => {
   ];
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="mb-12">
-        <h2 className="text-4xl font-bold mb-4">Ecosystem <span className="gradient-text">Integrations</span></h2>
-        <p className="text-slate-400 max-w-2xl leading-relaxed">
+    <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="border-b border-slate-800 pb-6 mb-8">
+        <h2 className="text-2xl font-bold text-white mb-2">Integrations & Add-ons</h2>
+        <p className="text-sm text-slate-400">
           Connect Meet2Action with the tools your team already uses. Seamlessly bridge the gap between conversation and execution.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="space-y-4">
         {integrations.map((item, i) => (
-          <div key={i} className="glass p-8 rounded-3xl border border-white/5 hover:border-blue-500/20 transition-all group">
-            <div className="flex justify-between items-start mb-6">
-              <div className="text-4xl group-hover:scale-110 transition-transform">{item.icon}</div>
-              <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${item.status === 'Connected' ? 'bg-green-500/10 text-green-400' :
-                item.status === 'Pending' ? 'bg-amber-500/10 text-amber-400' : 'bg-slate-800 text-slate-500'
-                }`}>
-                {item.status}
-              </span>
+          <div key={i} className="bg-[#111827] border border-slate-800 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-slate-700 transition-colors shadow-sm">
+            
+            <div className="flex items-start gap-5 flex-1 min-w-0">
+              <div className="w-12 h-12 rounded-lg bg-[#0b0f19] border border-slate-700/60 flex items-center justify-center text-2xl shrink-0 shadow-sm">
+                {item.icon}
+              </div>
+              <div>
+                <div className="flex items-center gap-3 mb-1.5">
+                  <h3 className="text-base font-semibold text-slate-200">{item.name}</h3>
+                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${
+                    item.status === 'Connected' ? 'bg-green-500/10 border-green-500/20 text-green-400' :
+                    item.status === 'Pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 
+                    'bg-slate-800/50 border-slate-700/50 text-slate-500'
+                  }`}>
+                    {item.status}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-400 leading-relaxed max-w-xl">
+                  {item.description}
+                </p>
+                
+                <div className="flex flex-wrap gap-2 mt-3 hidden lg:flex">
+                   {item.features.map((f, j) => (
+                      <span key={j} className="text-xs text-slate-500 bg-[#0b0f19] border border-slate-800 px-2 py-1 rounded">
+                        {f}
+                      </span>
+                   ))}
+                </div>
+              </div>
             </div>
-            <h3 className="text-xl font-bold mb-3">{item.name}</h3>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-              {item.description}
-            </p>
-            <div className="space-y-2">
-              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Key Capabilities</h4>
-              <ul className="space-y-1">
-                {item.features.map((f, j) => (
-                  <li key={j} className="text-xs text-slate-300 flex items-center gap-2">
-                    <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
-                    {f}
-                  </li>
-                ))}
-              </ul>
+
+            <div className="w-full md:w-auto flex shrink-0 border-t border-slate-800/60 md:border-t-0 pt-4 md:pt-0">
+               <button
+                  onClick={() => {
+                    if (item.name === 'Google Calendar' && !user) {
+                      window.location.href = 'http://localhost:8000/auth/google/login';
+                    }
+                  }}
+                  disabled={item.status === 'Connected' || item.status === 'Unavailable'}
+                  className={`w-full md:w-auto px-5 py-2 rounded-md text-sm font-medium transition-colors border ${
+                      item.status === 'Connected'
+                      ? 'bg-slate-800 text-slate-300 border-slate-700 cursor-default'
+                      : item.status === 'Unavailable'
+                        ? 'bg-[#0b0f19] text-slate-600 border-slate-800 cursor-not-allowed'
+                        : 'bg-blue-600 hover:bg-blue-500 text-white border-blue-500 shadow-sm'
+                    }`}
+                >
+                  {item.status === 'Connected' ? 'Manage' : item.status === 'Unavailable' ? 'Coming Soon' : 'Connect'}
+                </button>
             </div>
-            <div className="mt-8">
-              <button
-                onClick={() => {
-                  if (item.name === 'Google Calendar' && !user) {
-                    window.location.href = 'http://localhost:8000/auth/google/login';
-                  }
-                }}
-                disabled={item.status === 'Connected' || item.status === 'Unavailable'}
-                className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${item.status === 'Connected'
-                  ? 'bg-green-500/10 text-green-400 cursor-default border border-green-500/20'
-                  : item.status === 'Unavailable'
-                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                    : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-500/20'
-                  }`}
-              >
-                {item.status === 'Connected' ? 'Connected' : item.status === 'Unavailable' ? 'Coming Soon' : 'Initialize Connection'}
-              </button>
-            </div>
+            
           </div>
         ))}
       </div>

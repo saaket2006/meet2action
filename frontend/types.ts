@@ -31,7 +31,7 @@ export interface SavedAnalysis extends MeetingAnalysis {
 }
 
 export type AnalysisStatus = 'idle' | 'analyzing' | 'reasoning' | 'success' | 'error';
-export type View = 'main' | 'integrations';
+export type View = 'landing' | 'main' | 'integrations';
 
 export interface FileData {
   name: string;

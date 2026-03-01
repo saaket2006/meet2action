@@ -5,13 +5,14 @@ import { FileData } from '../types';
 interface FileUploadProps {
   onFileSelect: (file: FileData) => void;
   isLoading: boolean;
+  onAuthRequired?: () => void;
 }
 
-  const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isLoading }) => {
-    const [dragActive, setDragActive] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
+const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect, isLoading, onAuthRequired }) => {
+  const [dragActive, setDragActive] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleFile = (file: File) => {
+  const handleFile = (file: File) => {
     onFileSelect({
       name: file.name,
       type: file.type,
@@ -31,54 +32,60 @@ interface FileUploadProps {
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     setDragActive(false);
+
+    if (onAuthRequired) {
+      onAuthRequired();
+      return;
+    }
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onAuthRequired) {
+      onAuthRequired();
+      return;
+    }
+    inputRef.current?.click();
+  };
+
   return (
-    <div 
-      className={`relative group h-64 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center transition-all cursor-pointer ${
-        dragActive 
-          ? 'border-blue-500 bg-blue-500/10' 
-          : 'border-slate-800 hover:border-slate-700 bg-slate-900/50 hover:bg-slate-900/80'
-      } ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+    <div
+      className={`relative group border border-dashed rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer overflow-hidden ${dragActive
+        ? 'border-blue-500 bg-blue-500/10 shadow-sm'
+        : 'border-slate-700 bg-[#111827] hover:bg-slate-800 hover:border-slate-500 hover:shadow-sm'
+        } ${isLoading ? 'pointer-events-none opacity-80' : ''}`}
+      style={{ height: '44px', minWidth: '240px', padding: '0 20px' }}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
-      onClick={() => inputRef.current?.click()}
+      onClick={handleClick}
     >
-      <input 
-        type="file" 
+      <input
+        type="file"
         ref={inputRef}
         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
         className="hidden"
         accept=".txt,.pdf,.doc,.docx,.mp3,.wav,.mp4"
       />
-      
-      <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
+
+      <div className="flex items-center justify-center gap-3 w-full">
+        {isLoading ? (
+          <div className="w-4 h-4 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin shrink-0"></div>
+        ) : (
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 shrink-0 transition-colors ${dragActive ? 'text-blue-400' : 'text-slate-400 group-hover:text-blue-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+        )}
+        <span className={`text-sm font-medium transition-colors ${dragActive ? 'text-blue-400' : 'text-slate-300 group-hover:text-white'}`}>
+          {isLoading ? 'Processing...' : dragActive ? 'Drop File' : 'Upload Meeting Source'}
+        </span>
       </div>
-
-      <h3 className="text-xl font-semibold mb-1">
-        {isLoading ? 'Processing Meeting...' : 'Upload Meeting Source'}
-      </h3>
-      <p className="text-slate-400 text-sm max-w-xs text-center px-4">
-        Support for Text Transcripts, PDFs, Word, Video, or Audio recordings.
-      </p>
-
-      {isLoading && (
-        <div className="absolute inset-0 bg-slate-950/40 rounded-3xl flex items-center justify-center backdrop-blur-[2px]">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-            <div className="w-3 h-3 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-            <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

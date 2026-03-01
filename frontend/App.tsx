@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import FileUpload from './components/FileUpload';
 import AnalysisView from './components/AnalysisView';
 import IntegrationsView from './components/IntegrationsView';
+import LandingPage from './components/LandingPage';
 import { storageService } from './services/storage';
 import { MeetingAnalysis, FileData, AnalysisStatus, SavedAnalysis, View } from './types';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -59,14 +60,14 @@ const MOCK_ANALYSIS: MeetingAnalysis = {
 };
 
 const AppContent: React.FC = () => {
-  const [view, setView] = useState<View>('main');
+  const [view, setView] = useState<View>('landing');
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [analysis, setAnalysis] = useState<MeetingAnalysis | null>(null);
   const [history, setHistory] = useState<SavedAnalysis[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   // Get user from AuthContext
-  const { user } = useAuth();
+  const { user, openLoginModal } = useAuth();
   // Use email as unique ID, or undefined if guest
   const userId = user?.email;
 
@@ -187,6 +188,10 @@ const AppContent: React.FC = () => {
     setHistory(storageService.getHistory(userId));
   };
 
+  if (view === 'landing') {
+    return <LandingPage onEnter={handleNavigate} />;
+  }
+
   return (
     <Layout
       activeView={view}
@@ -198,87 +203,113 @@ const AppContent: React.FC = () => {
         ) : (
           <>
             {isIdle || isError ? (
-              <div className="space-y-24">
-                <section className="text-center animate-in fade-in slide-in-from-top-4 duration-1000">
-                  <h2 className="text-5xl md:text-7xl font-bold tracking-tight mb-6">
-                    Meetings to <span className="gradient-text">Actions</span>
-                  </h2>
-                  <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-                    An Intent-Centric Agent Orchestrated Platform that transforms your meetings into actionable insights, seamlessly integrating with your workflow.
-                  </p>
+              <div className="space-y-8">
+                {/* Page Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-800 pb-6 mb-8">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-white leading-tight">
+                      Intelligence Dashboard
+                    </h2>
+                    <p className="text-sm text-slate-400 mt-1">
+                      Manage and analyze your team's meeting insights.
+                    </p>
+                  </div>
+                  <div className="w-full md:w-auto">
+                    <FileUpload
+                      onFileSelect={handleFileSelect}
+                      isLoading={isAnalyzing}
+                      onAuthRequired={!user ? openLoginModal : undefined}
+                    />
+                  </div>
+                </div>
 
-                  <div className="max-w-2xl mx-auto space-y-4">
-                    {error && (
-                      <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-400 text-sm">
-                        {error}
-                      </div>
-                    )}
-                    <FileUpload onFileSelect={handleFileSelect} isLoading={isAnalyzing} />
+                {error && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-md text-red-400 text-sm flex items-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    {error}
+                  </div>
+                )}
 
-                    <div className="flex items-center justify-center gap-4">
-                      <div className="h-px bg-slate-800 flex-1"></div>
-                      <span className="text-slate-500 text-sm font-medium">OR</span>
-                      <div className="h-px bg-slate-800 flex-1"></div>
+                {history.length > 0 ? (
+                  <div className="bg-[#111827] border border-slate-800 rounded-lg overflow-hidden shadow-sm">
+                    <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0b0f19]">
+                      <h3 className="text-sm font-semibold text-white">Recent Sessions</h3>
+                      <button onClick={handleTrySample} className="text-xs font-medium text-blue-400 hover:text-blue-300 transition-colors">Load Sample Data</button>
                     </div>
-
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm whitespace-nowrap">
+                        <thead className="bg-[#0f1117] text-slate-400 border-b border-slate-800">
+                          <tr>
+                            <th className="px-6 py-3 font-medium tracking-wide">Source Details</th>
+                            <th className="px-6 py-3 font-medium tracking-wide">Intent Overview</th>
+                            <th className="px-6 py-3 font-medium tracking-wide">Date</th>
+                            <th className="px-6 py-3 font-medium tracking-wide text-right">Actions</th>
+                            <th className="px-6 py-3 font-medium text-right"></th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60">
+                          {history.map((item) => (
+                            <tr
+                              key={item.id}
+                              onClick={() => handleViewHistory(item)}
+                              className="hover:bg-slate-800/40 cursor-pointer transition-colors group"
+                            >
+                              <td className="px-6 py-4">
+                                <div className="font-semibold text-slate-200">{item.sourceName}</div>
+                                <div className="text-xs text-slate-500 mt-1">Processed via Meet2Action</div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="max-w-[250px] lg:max-w-[400px] truncate text-slate-300 font-medium" title={item.intent}>
+                                  {item.intent}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-slate-400">
+                                {new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                  {item.actionItems.length} Identified
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button
+                                  onClick={(e) => handleDeleteHistory(e, item.id)}
+                                  className="text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded hover:bg-red-500/10"
+                                  title="Delete Session"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-[#111827] border border-slate-800 rounded-lg p-12 text-center shadow-sm">
+                    <div className="w-16 h-16 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-5 border border-slate-700/50">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-white mb-2">No active sessions</h3>
+                    <p className="text-sm text-slate-400 max-w-sm mx-auto mb-8 leading-relaxed">
+                      Upload a meeting transcript, audio, or video file to generate intelligence and action items.
+                    </p>
                     <button
                       onClick={handleTrySample}
                       disabled={isAnalyzing}
-                      className="w-full py-4 rounded-2xl border border-blue-500/30 bg-blue-500/5 text-blue-400 font-semibold hover:bg-blue-500/10 transition-all active:scale-[0.98]"
+                      className="px-5 py-2.5 border border-slate-700 bg-slate-800 text-slate-200 text-sm font-medium rounded-md hover:bg-slate-700 hover:text-white transition-colors shadow-sm"
                     >
-                      View Sample Meeting Analysis
+                      Load Sample Data
                     </button>
                   </div>
-                </section>
-
-                {history.length > 0 && (
-                  <section className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-                    <div className="flex items-center justify-between mb-8">
-                      <h3 className="text-2xl font-bold">Recent Intelligence Sessions</h3>
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Backend Sync: Active</span>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {history.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleViewHistory(item)}
-                          className="glass p-6 rounded-3xl cursor-pointer hover:border-blue-500/40 hover:bg-white/5 transition-all group relative"
-                        >
-                          <button
-                            onClick={(e) => handleDeleteHistory(e, item.id)}
-                            className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 p-2 hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-xl transition-all"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                          <div className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-3">
-                            {new Date(item.createdAt).toLocaleDateString()} • {item.sourceName}
-                          </div>
-                          <h4 className="text-lg font-semibold text-slate-100 line-clamp-2 mb-4">{item.intent}</h4>
-                          <div className="flex items-center justify-between text-xs text-slate-500 font-medium pt-4 border-t border-white/5">
-                            <span>{item.actionItems.length} Actions</span>
-                            <span className="text-blue-400 group-hover:translate-x-1 transition-transform">Review Analysis →</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
                 )}
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {[
-                    { title: 'Intelligent Intent', desc: 'Auto-detect the purpose of every discussion.', icon: '🧠' },
-                    { title: 'Action Extraction', desc: 'Identify assignees and deadlines of tasks instantly.', icon: '🎯' },
-                    { title: 'App Integration', desc: 'Sync directly with Trello, Google Calendar, and many more.', icon: '🔗' },
-                  ].map((feature, i) => (
-                    <div key={i} className="glass p-8 rounded-3xl text-left hover:border-white/20 transition-all group">
-                      <div className="text-3xl mb-4 group-hover:scale-110 transition-transform inline-block">{feature.icon}</div>
-                      <h4 className="text-lg font-semibold mb-2">{feature.title}</h4>
-                      <p className="text-slate-400 text-sm leading-relaxed">{feature.desc}</p>
-                    </div>
-                  ))}
-                </div>
               </div>
             ) : isAnalyzing ? (
               <div className="flex flex-col items-center justify-center py-32 space-y-8 animate-in fade-in duration-500">
@@ -293,25 +324,25 @@ const AppContent: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-8">
-                <div className="flex items-center justify-between">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                   <div>
-                    <h3 className="text-2xl font-bold flex items-center gap-3">
-                      Analysis Results
+                    <h3 className="text-xl font-bold flex items-center gap-3 text-white">
+                      Analysis View
                       {analysis === MOCK_ANALYSIS && (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 uppercase tracking-wider">Demo Mode</span>
                       )}
                     </h3>
-                    <p className="text-slate-400">Review extracted and suggested actions</p>
+                    <p className="text-sm text-slate-400 mt-1">Reviewing source intelligence</p>
                   </div>
                   <button
                     onClick={reset}
-                    className="px-6 py-2 bg-slate-800 hover:bg-slate-700 rounded-full text-sm font-medium transition-all flex items-center gap-2"
+                    className="px-4 py-2 border border-slate-700 bg-slate-800 hover:bg-slate-700 rounded-md text-sm font-medium transition-all flex items-center gap-2"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    New Session
+                    Back to Dashboard
                   </button>
                 </div>
                 {analysis && <AnalysisView data={analysis} onUpdate={handleAnalysisUpdate} />}

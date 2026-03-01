@@ -4,6 +4,13 @@ __pycache__/
 venv/
 backend/venv/
 .env
+.env.*
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+*.sql
 
 # Temp & Media
 backend/temp/

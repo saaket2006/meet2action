@@ -151,281 +151,261 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data, onUpdate }) => {
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
-
-      {/* Core Intent */}
-      <section className="relative rounded-[2.5rem] p-10 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 shadow-xl">
-        <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500 rounded-l-[2.5rem]" />
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.3em] text-blue-400 mb-4">
-          Core Meeting Intent
-        </h4>
-        <div className="text-3xl font-bold text-white leading-tight">
-          {data.intent}
+    <div className="space-y-6">
+      {/* Core Intent Panel */}
+      <div className="bg-[#111827] border border-slate-800 rounded-lg p-6 shadow-sm flex items-start gap-4">
+        <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400 shrink-0 border border-blue-500/20">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
-      </section>
-
-      {/* Tabs */}
-      <div className="rounded-[2rem] overflow-hidden border border-slate-800 bg-slate-950/50 backdrop-blur-xl">
-
-        {/* Tab Header */}
-        <div className="flex border-b border-slate-800">
-          <button
-            onClick={() => setActiveTab('summary')}
-            className={`flex-1 py-6 text-sm font-bold uppercase tracking-wider transition ${activeTab === 'summary'
-              ? 'text-blue-400 border-b-2 border-blue-400 bg-slate-900/40'
-              : 'text-slate-500 hover:text-slate-300'
-              }`}
-          >
-            Intelligent M.O.M
-          </button>
-
-          <button
-            onClick={() => setActiveTab('actions')}
-            className={`flex-1 py-6 text-sm font-bold uppercase tracking-wider transition ${activeTab === 'actions'
-              ? 'text-blue-400 border-b-2 border-blue-400 bg-slate-900/40'
-              : 'text-slate-500 hover:text-slate-300'
-              }`}
-          >
-            Action Matrix ({data.actionItems.length})
-          </button>
+        <div>
+          <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Core Intent</h4>
+          <p className="text-lg font-medium text-slate-200 leading-snug">{data.intent}</p>
         </div>
+      </div>
 
-        <div className="p-10">
-
-          {/* SUMMARY TAB */}
-          {activeTab === 'summary' && (
-            <div className="space-y-12">
-              <div className="grid md:grid-cols-2 gap-12">
-                {data.summary.map((point, i) => {
-                  const id = `summary-${i}`;
-                  return (
-                    <div key={i} className="group/item relative space-y-4">
-                      <div className="flex justify-between items-start">
-                        <h5 className="text-blue-400 text-xs font-bold uppercase tracking-widest pt-1">
-                          {point.topic}
-                        </h5>
-
-                        <div className="flex items-center gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                          {/* Edit/Delete Actions */}
-                          <button
-                            onClick={() => {
-                              setNewTopic(point.topic);
-                              setNewContent(point.content);
-                              setEditingIndex(i);
-                              setIsAddModalOpen(true);
-                            }}
-                            className="p-1 text-slate-500 hover:text-blue-400 transition"
-                            title="Edit"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              if (onUpdate) {
-                                const updatedSummary = data.summary.filter((_, idx) => idx !== i);
-                                onUpdate({ ...data, summary: updatedSummary });
-                              }
-                            }}
-                            className="p-1 text-slate-500 hover:text-red-400 transition"
-                            title="Delete"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <p className="text-slate-200 text-lg leading-relaxed">
-                        {point.content}
-                      </p>
-
-                      <div className="flex gap-4">
-                        {point.reasoning && (
-                          <button
-                            onClick={() => toggleReasoning(id)}
-                            className="text-[10px] uppercase font-bold text-slate-500 hover:text-blue-400 transition flex items-center gap-1"
-                          >
-                            {openReasoning[id] ? 'Hide Reasoning' : 'View Reasoning'}
-                          </button>
-                        )}
-                      </div>
-
-                      {openReasoning[id] && point.reasoning && (
-                        <div className="p-4 rounded-xl bg-slate-900/50 border border-slate-800 text-xs italic text-slate-400 animate-in slide-in-from-top-2">
-                          {point.reasoning}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Add Point Button - Bottom of List */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Left Column: Summary Items */}
+        <div className="flex-1 min-w-0 flex flex-col gap-6">
+          <div className="bg-[#111827] border border-slate-800 rounded-lg shadow-sm overflow-hidden flex flex-col h-full">
+            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0b0f19]">
+              <h3 className="text-base font-semibold text-white">Minutes of Meeting</h3>
               <button
                 onClick={() => {
                   setNewTopic("");
                   setNewContent("");
                   setIsAddModalOpen(true);
                 }}
-                className="w-full py-4 border-2 border-dashed border-slate-800 rounded-2xl text-slate-500 hover:text-blue-400 hover:border-blue-500/30 hover:bg-slate-900/50 transition-all flex items-center justify-center gap-2 font-medium group"
+                className="text-xs px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-medium transition-colors flex items-center gap-1.5 shadow-sm"
               >
-                <div className="p-1 rounded-full bg-slate-800 group-hover:bg-blue-500/20 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                Add Manual Summary Point
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Detail
               </button>
             </div>
-          )}
-
-          {/* ACTION MATRIX TAB */}
-          {activeTab === 'actions' && (
-            <div className="space-y-8">
-              {sortedActions.map((item, i) => {
-                const id = `action-${i}`;
-
+            
+            <div className="p-0 flex-1 divide-y divide-slate-800/60">
+              {data.summary.map((point, i) => {
+                const id = `summary-${i}`;
                 return (
-                  <div
-                    key={i}
-                    className="group relative rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-8 transition-all duration-300 hover:border-slate-700 hover:shadow-xl hover:-translate-y-1"
-                  >
-                    {/* Top Row */}
-                    <div className="flex justify-between items-start mb-5">
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={`text-xs px-3 py-1 rounded-full font-semibold tracking-wide uppercase ${getPriorityStyles(item.priority)}`}
-                        >
-                          {item.priority} Priority
-                        </span>
+                  <div key={i} className="group/item relative p-6 hover:bg-slate-800/20 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <h5 className="text-slate-200 text-sm font-semibold">
+                        {point.topic}
+                      </h5>
 
-                        <span className="text-xs text-slate-300 uppercase tracking-wider">
-                          Assignee : {item.assignee || "Common to all"}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-2">
-                        {item.reasoning && (
-                          <button
-                            onClick={() => toggleReasoning(id)}
-                            className="text-xs px-3 py-2 rounded-xl border border-slate-700 text-slate-400 hover:bg-slate-800 transition"
-                            title="View Reasoning"
-                          >
-                            Reasoning
-                          </button>
-                        )}
-
+                      <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
                         <button
                           onClick={() => {
-                            // Open Edit Modal (TODO: Implement Edit Modal for Actions)
-                            // For now, let's just delete as requested by "wrong place"
-                            // A full Edit for Actions is complex (3 fields). Delete is critical.
+                            setNewTopic(point.topic);
+                            setNewContent(point.content);
+                            setEditingIndex(i);
+                            setIsAddModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-500 hover:text-blue-400 hover:bg-slate-800 rounded transition"
+                          title="Edit"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
                             if (onUpdate) {
-                              const updatedActions = data.actionItems.filter((_, idx) => idx !== i);
-                              onUpdate({ ...data, actionItems: updatedActions });
+                              const updatedSummary = data.summary.filter((_, idx) => idx !== i);
+                              onUpdate({ ...data, summary: updatedSummary });
                             }
                           }}
-                          className="text-xs px-3 py-2 rounded-xl border border-slate-700 text-slate-400 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/10 transition"
-                          title="Delete Action"
+                          className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded transition"
+                          title="Delete"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
-
-                        <button
-                          onClick={() => exportToCalendar(item)}
-                          className="text-xs px-4 py-2 rounded-xl bg-yellow-600 hover:bg-orange-500 text-white transition font-bold"
-                        >
-                          Sync to Calendar
-                        </button>
                       </div>
                     </div>
 
-                    {/* Task Title */}
-                    <h3 className="text-xl font-semibold text-white mb-4">
-                      {item.task}
-                    </h3>
+                    <p className="text-slate-400 text-sm leading-relaxed mb-3">
+                      {point.content}
+                    </p>
 
-                    {/* Deadline */}
-                    {item.deadline && (
-                      <div className="flex items-center gap-2 text-sm text-slate-400">
-                        <span>📅</span>
-                        Deadline: {item.deadline}
-                      </div>
-                    )}
-
-                    {/* Reasoning Panel */}
-                    {openReasoning[id] && item.reasoning && (
-                      <div className="mt-6 p-4 rounded-xl bg-slate-900/60 border border-slate-800 text-xs italic text-slate-400">
-                        {item.reasoning}
+                    {point.reasoning && (
+                      <div>
+                        <button
+                          onClick={() => toggleReasoning(id)}
+                          className="text-xs font-medium text-slate-500 hover:text-blue-400 transition inline-flex items-center gap-1"
+                        >
+                          {openReasoning[id] ? 'Hide Extraction Logic' : 'View Extraction Logic'}
+                        </button>
+                        {openReasoning[id] && (
+                          <div className="mt-2 p-3 rounded bg-slate-900 border border-slate-800 text-xs text-slate-400 italic">
+                            {point.reasoning}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 );
               })}
+              {data.summary.length === 0 && (
+                <div className="p-8 text-center text-slate-500 text-sm">
+                  No meeting minutes extracted.
+                </div>
+              )}
             </div>
-          )}
+          </div>
+        </div>
 
+        {/* Right Column: Action Items */}
+        <div className="lg:w-[400px] xl:w-[480px] flex-shrink-0">
+          <div className="bg-[#111827] border border-slate-800 rounded-lg shadow-sm overflow-hidden sticky top-24">
+            <div className="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-[#0b0f19]">
+              <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                Action Matrix
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  {data.actionItems.length}
+                </span>
+              </h3>
+            </div>
+            
+            <div className="divide-y divide-slate-800/60 max-h-[800px] overflow-y-auto">
+              {sortedActions.map((item, i) => {
+                const id = `action-${i}`;
+                return (
+                  <div key={i} className="p-5 hover:bg-slate-800/20 transition-colors group">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex flex-col gap-1.5">
+                        <span className={`inline-flex items-center justify-center w-fit px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${getPriorityStyles(item.priority)}`}>
+                          {item.priority}
+                        </span>
+                        <div className="text-xs font-medium text-slate-500">
+                          Assignee: <span className="text-slate-300">{item.assignee || "Unassigned"}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => {
+                            if (onUpdate) {
+                              const updatedActions = data.actionItems.filter((_, idx) => idx !== i);
+                              onUpdate({ ...data, actionItems: updatedActions });
+                            }
+                          }}
+                          className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded transition"
+                          title="Remove Action"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <h4 className="text-sm font-semibold text-slate-200 mb-3 leading-snug">
+                      {item.task}
+                    </h4>
+
+                    <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-800/50">
+                      <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        {item.deadline || "No deadline"}
+                      </div>
+                      
+                      <button
+                        onClick={() => exportToCalendar(item)}
+                        className="text-[11px] px-2.5 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition font-medium flex items-center gap-1.5"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 002 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+                        </svg>
+                        Export
+                      </button>
+                    </div>
+
+                    {item.reasoning && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => toggleReasoning(id)}
+                          className="text-[10px] font-medium text-slate-500 hover:text-blue-400 transition"
+                        >
+                          {openReasoning[id] ? 'Hide Logic' : 'View Logic'}
+                        </button>
+                        {openReasoning[id] && (
+                          <div className="mt-1 p-2 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-400 italic">
+                            {item.reasoning}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {sortedActions.length === 0 && (
+                <div className="p-8 text-center text-slate-500 text-sm">
+                  No action items identified.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Add/Edit Point Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-xl font-bold text-white mb-4">
-              {editingIndex !== null ? 'Edit Summary Point' : 'Add Summary Point'}
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-[#111827] border border-slate-800 rounded-lg p-6 w-full max-w-md shadow-xl relative overflow-hidden">
+            <h3 className="text-lg font-bold text-white mb-4">
+              {editingIndex !== null ? 'Edit Detail' : 'Add Detail'}
             </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Topic</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Topic</label>
                 <input
                   type="text"
                   value={newTopic}
                   onChange={(e) => setNewTopic(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                  placeholder="e.g., Budget Review"
+                  className="w-full bg-[#0b0f19] border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="e.g., Q3 Roadmap"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Content</label>
+                <label className="block text-xs font-semibold text-slate-400 mb-1.5">Description</label>
                 <textarea
                   rows={4}
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                  className="w-full bg-[#0b0f19] border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none transition-all"
                   placeholder="Enter the details..."
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-8">
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-800">
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-md transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddPoint}
                 disabled={isEnhancing || !newTopic || !newContent}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isEnhancing ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Enhancing...
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Saving...
                   </>
                 ) : (
                   <>
-                    <span>✨</span> {editingIndex !== null ? 'Save Changes' : 'Add & Enhance'}
+                    {editingIndex !== null ? 'Save Changes' : 'Add Detail'}
                   </>
                 )}
               </button>
