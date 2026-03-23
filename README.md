@@ -1,6 +1,6 @@
 # Meet2Action: AI-Powered Meeting Analysis for Actionable Insights (currently in development stage)
 
-### An Intent-Centric Agent-Orchestrated System for Extracting Actionable Insights from Meetings
+### AI-Driven System for Extracting Structured Actions and Insights from Online Meetings
 
 ## Overview
 
