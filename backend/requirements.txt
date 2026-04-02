@@ -4,8 +4,11 @@ python-multipart
 python-dotenv
 fastapi
 ffmpeg-python
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
-itsdangerous
+firebase-admin
 python-dateutil
+itsdangerous
+sqlalchemy
+asyncpg
+google-api-python-client
+google-auth-oauthlib
+google-auth-httplib2

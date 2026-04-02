@@ -29,11 +29,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Add Session Middleware for OAuth
-from starlette.middleware.sessions import SessionMiddleware
-import os
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY", "super-secret-key"))
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -46,9 +41,11 @@ app.add_middleware(
 )
 
 from app.routers.auth import router as auth_router
+from app.routers.google import router as google_router
 
 app.include_router(analysis_router)
 app.include_router(auth_router)
+app.include_router(google_router)
 
 @app.get("/")
 def root():

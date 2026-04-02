@@ -59,3 +59,22 @@ def create_event(service, summary, description, start_time, end_time=None):
     except Exception as e:
         logger.error(f"Error creating event: {e}")
         raise
+
+def list_calendars(service):
+    """
+    Lists the calendars available in the user's Google account.
+    """
+    try:
+        calendar_list = service.calendarList().list().execute()
+        calendars = []
+        for entry in calendar_list.get('items', []):
+            calendars.append({
+                'id': entry.get('id'),
+                'summary': entry.get('summary'),
+                'primary': entry.get('primary', False),
+                'accessRole': entry.get('accessRole')
+            })
+        return calendars
+    except Exception as e:
+        logger.error(f"Error listing calendars: {e}")
+        raise
