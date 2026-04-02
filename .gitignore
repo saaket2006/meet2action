@@ -5,6 +5,7 @@ venv/
 backend/venv/
 .env
 .env.*
+.vscode
 
 # Database
 *.sqlite
