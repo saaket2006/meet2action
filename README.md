@@ -46,22 +46,35 @@ The system is built with an agent-orchestrated backend and a modern frontend int
 
 ------------------------------------------------------------------------
 
+## Project Structure
+
+The platform is organized into a clean, modular architecture:
+
+- **`frontend/`**
+  - **`src/`**: All source code (UI components, services, context, assets).
+  - **`index.html`**: Entry point for the Vite application.
+- **`backend/`**
+  - **`app/`**: FastAPI implementation (Routers, schemas, services).
+  - **`agents/`**: Modular AI agents for processing.
+- **Root**
+  - **`.env`**: Centralized environment configuration.
+
+------------------------------------------------------------------------
+
 ## Tech Stack
 
 ### Backend
-
--   FastAPI
--   Faster-Whisper (CTranslate2 backend)
--   NVIDIA CUDA 12.x Toolkit
--   Ollama (Qwen 2.5 7B / 3B)
--   Python 3.10+
+- **FastAPI**: Modern, high-performance web framework.
+- **Faster-Whisper**: GPU-accelerated speech-to-text (CTranslate2).
+- **Ollama**: Local LLM inference (Qwen 2.5 7B/3B).
+- **Python 3.10+**
 
 ### Frontend
-
--   React
--   TypeScript
--   Vite
--   TailwindCSS
+- **React 19**: Modern UI library.
+- **TypeScript**: Static typing for reliability.
+- **Vite 6**: Fast development server and build tool.
+- **TailwindCSS**: Premium utility-first styling.
+- **Firebase**: Authentication and secure state management.
 
 ### Hardware
 
