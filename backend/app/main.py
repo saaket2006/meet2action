@@ -1,10 +1,11 @@
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers.analysis import router as analysis_router
-from dotenv import load_dotenv
-load_dotenv()
-from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
 from faster_whisper import WhisperModel
 from core.logger import get_logger
 
@@ -13,15 +14,17 @@ logger = get_logger("Startup")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("--- STARTING MEET2ACTION BACKEND ---", flush=True)
-    logger.info("Loading Faster-Whisper model...")
+    logger.info("Initializing Faster-Whisper model on GPU (cuda) with float16...")
 
     app.state.whisper_model = WhisperModel(
         "base",
         device="cuda",
-        compute_type="float16"  # VERY IMPORTANT for GPU
+        compute_type="float16"
     )
 
-    logger.info("Faster-Whisper model loaded.")
+    logger.info("Faster-Whisper model loaded on GPU.")
+
+
 
     yield
 
@@ -66,8 +69,16 @@ class EnhancePointRequest(BaseModel):
 @app.post("/api/enhance-point")
 async def enhance_point(request: EnhancePointRequest):
     try:
-        llm = OllamaClient()
+        from core.llm_client import OllamaClient, GeminiClient
+        use_ollama = os.getenv("USE_OLLAMA", "false").lower() == "true"
+        if os.getenv("GOOGLE_AI_API_KEY") and not use_ollama:
+            llm = GeminiClient()
+        else:
+            llm = OllamaClient()
+
+            
         prompt = (
+
             f"Fix grammar and enhance clarity of this meeting summary point. "
             f"Keep it concise and professional. Do not change the underlying meaning.\n\n"
             f"Topic: {request.topic}\n"

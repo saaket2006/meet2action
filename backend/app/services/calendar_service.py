@@ -36,21 +36,46 @@ def create_event(service, summary, description, start_time, end_time=None):
     :param end_time: datetime object for when the event ends (defaults to 1 hour after start).
     :return: The created event object.
     """
+    # Ensure start_time is a datetime object
+    if isinstance(start_time, str):
+        try:
+            start_time = datetime.datetime.fromisoformat(start_time.replace('Z', '+00:00'))
+        except ValueError:
+            raise ValueError(f"Invalid start_time format: {start_time}. Expected ISO 8601.")
+            
+    start_iso = start_time.isoformat()
+    
+    # Calculate end_time if missing
     if end_time is None:
-        end_time = start_time + datetime.timedelta(hours=1)
+        if isinstance(start_time, datetime.datetime):
+            end_time = start_time + datetime.timedelta(hours=1)
+            end_iso = end_time.isoformat()
+        else:
+             # This block is now safety context, as fallback
+             end_iso = start_iso 
+    else:
+        # Ensure end_time is also a datetime object
+        if isinstance(end_time, str):
+            try:
+                end_time = datetime.datetime.fromisoformat(end_time.replace('Z', '+00:00'))
+            except ValueError:
+                 raise ValueError(f"Invalid end_time format: {end_time}. Expected ISO 8601.")
+        end_iso = end_time.isoformat()
+
         
     event = {
         'summary': summary,
         'description': description,
         'start': {
-            'dateTime': start_time.isoformat(),
-            'timeZone': 'UTC', # Adjust as necessary or get from user preference
+            'dateTime': start_iso,
+            'timeZone': 'UTC',
         },
         'end': {
-            'dateTime': end_time.isoformat(),
+            'dateTime': end_iso,
             'timeZone': 'UTC',
         },
     }
+
     
     try:
         event_result = service.events().insert(calendarId='primary', body=event).execute()

@@ -9,16 +9,14 @@ class GoogleAuthSync(BaseModel):
 class CalendarSyncRequest(GoogleAuthSync):
     summary: str
     description: Optional[str] = None
-    start_time: datetime
-    end_time: Optional[datetime] = None
+    start_time: str
+    end_time: Optional[str] = None
 
-class DriveUploadRequest(GoogleAuthSync):
-    filename: str
-    content: str  # Assuming text content for now (e.g. transcript)
-    mime_type: Optional[str] = "text/plain"
-    parent_id: Optional[str] = None
+
+
 
 class BatchSyncResult(BaseModel):
     success: bool
     link: Optional[str] = None
     error: Optional[str] = None
+

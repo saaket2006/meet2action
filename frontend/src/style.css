@@ -50,7 +50,6 @@ h1, h2, h3, .font-space {
 .loader-container {
   position: relative;
   width: 100%;
-  height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,8 +216,17 @@ h1, h2, h3, .font-space {
   100% { transform: translateX(200%); }
 }
 
+@keyframes loading-strip {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 .animate-progress {
   animation: progress 3s ease-in-out infinite;
+}
+
+.animate-loading-strip {
+  animation: loading-strip 2s ease-in-out infinite;
 }
 
 .dashboard-card {

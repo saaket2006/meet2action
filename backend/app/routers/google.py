@@ -1,9 +1,9 @@
 import os
 from fastapi import APIRouter, HTTPException, Depends
-from app.schemas.google import CalendarSyncRequest, DriveUploadRequest, BatchSyncResult, GoogleAuthSync
+from datetime import datetime, timedelta
+
+from app.schemas.google import CalendarSyncRequest, BatchSyncResult, GoogleAuthSync
 from app.services.calendar_service import get_calendar_service, create_event, list_calendars
-from app.services.drive_service import get_drive_service, upload_file
-import tempfile
 from core.logger import get_logger
 
 logger = get_logger("GoogleRouter")
@@ -14,12 +14,31 @@ CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 TOKEN_URI = "https://oauth2.googleapis.com/token"
 
+import dateparser
+
 @router.post("/sync-calendar", response_model=BatchSyncResult)
 async def sync_to_calendar(request: CalendarSyncRequest):
     """
     Syncs a meeting summary as a calendar event using user's access token.
     """
     try:
+        # Robustly parse the dates from the AI summary
+        parsed_start = dateparser.parse(request.start_time, settings={'PREFER_DATES_FROM': 'future'})
+        if not parsed_start:
+             # Fallback to tomorrow if parsing fails
+             parsed_start = datetime.now() + timedelta(days=1)
+        
+        parsed_end = None
+        if request.end_time:
+            parsed_end = dateparser.parse(request.end_time)
+        
+        if not parsed_end:
+            parsed_end = parsed_start + timedelta(hours=1)
+
+        # Safety conversion to ISO string for Google API
+        start_iso = parsed_start.isoformat() if hasattr(parsed_start, 'isoformat') else str(parsed_start)
+        end_iso = parsed_end.isoformat() if hasattr(parsed_end, 'isoformat') else str(parsed_end)
+
         service = get_calendar_service(
             access_token=request.token,
             refresh_token=request.refresh_token,
@@ -32,9 +51,11 @@ async def sync_to_calendar(request: CalendarSyncRequest):
             service, 
             summary=request.summary, 
             description=request.description, 
-            start_time=request.start_time, 
-            end_time=request.end_time
+            start_time=start_iso, 
+            end_time=end_iso
         )
+
+
         
         return BatchSyncResult(success=True, link=event.get("htmlLink"))
     except Exception as e:
@@ -60,39 +81,3 @@ async def get_calendars(request: GoogleAuthSync):
         logger.error(f"Failed to list calendars: {str(e)}")
         return {"success": False, "error": str(e)}
 
-@router.post("/upload-transcript", response_model=BatchSyncResult)
-async def upload_meeting_transcript(request: DriveUploadRequest):
-    """
-    Uploads meeting transcript content to user's Google Drive.
-    """
-    try:
-        service = get_drive_service(
-            access_token=request.token,
-            refresh_token=request.refresh_token,
-            token_uri=TOKEN_URI,
-            client_id=CLIENT_ID,
-            client_secret=CLIENT_SECRET
-        )
-        
-        # Save content to a temporary file for backend processing
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix=".txt") as tmp:
-            tmp.write(request.content)
-            temp_path = tmp.name
-        
-        try:
-            drive_file = upload_file(
-                service, 
-                file_path=temp_path, 
-                name=request.filename, 
-                mime_type=request.mime_type
-            )
-            os.remove(temp_path)
-            return BatchSyncResult(success=True, link=drive_file.get("webViewLink"))
-        except Exception as e:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
-            raise e
-            
-    except Exception as e:
-        logger.error(f"Drive upload failed: {str(e)}")
-        return BatchSyncResult(success=False, error=str(e))

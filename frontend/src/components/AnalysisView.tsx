@@ -10,7 +10,8 @@ interface AnalysisViewProps {
 const AnalysisView: React.FC<AnalysisViewProps> = ({ data, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<'summary' | 'actions'>('summary');
   const [openReasoning, setOpenReasoning] = useState<Record<string, boolean>>({});
-  const { user, googleAccessToken, loginWithGoogle } = useAuth();
+  const { user, googleAccessToken, idToken, loginWithGoogle } = useAuth();
+
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newTopic, setNewTopic] = useState("");
@@ -68,45 +69,32 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data, onUpdate }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          token: googleAccessToken, 
+          token: googleAccessToken || idToken, 
           summary: item.task, 
           start_time: deadlineIso 
         })
-      });
-      const result = await response.json();
-      if (result.success && result.link) window.open(result.link, '_blank');
-      else alert(`Sync failed: ${result.error || "Unknown error"}`);
-    } catch (e: any) { alert(`Error syncing: ${e.message}`); }
-  };
 
-  const exportToDrive = async () => {
-    if (!user) return alert("Sign In Required.");
-    let token = googleAccessToken;
-    if (!token) {
-       try { await loginWithGoogle(); } catch(e) { return ; }
-    }
-
-    // Convert summary to a readable text format
-    const transcriptText = data.summary.map(p => `${p.topic.toUpperCase()}\n${p.content}\n`).join('\n');
-    const filename = `Meeting_Summary_${new Date().toISOString().slice(0,10)}.txt`;
-
-    try {
-      const response = await fetch('http://localhost:8000/api/google/upload-transcript', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          token: googleAccessToken, 
-          filename, 
-          content: transcriptText 
-        })
       });
       const result = await response.json();
       if (result.success && result.link) {
-         window.open(result.link, '_blank');
-         alert("Meeting summary uploaded to Google Drive!");
-      } else alert(`Upload failed: ${result.error || "Unknown error"}`);
-    } catch (e: any) { alert(`Error uploading: ${e.message}`); }
+        try {
+          const url = new URL(result.link);
+          if (user?.email) {
+            url.searchParams.set('authuser', user.email);
+          }
+          window.open(url.toString(), '_blank');
+        } catch (linkError) {
+          console.error("Malformed calendar link from backend:", result.link);
+          window.open(result.link + (user?.email ? `&authuser=${user.email}` : ''), '_blank');
+        }
+      } else {
+
+        alert(`Sync failed: ${result.error || "Unknown error"}`);
+      }
+    } catch (e: any) { alert(`Error syncing: ${e.message}`); }
+
   };
+
 
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
@@ -151,15 +139,6 @@ const AnalysisView: React.FC<AnalysisViewProps> = ({ data, onUpdate }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" />
                 </svg>
                 Add Detail
-              </button>
-              <button 
-                onClick={exportToDrive}
-                className="text-[10px] font-space font-black text-emerald-400 hover:text-white transition-all uppercase tracking-widest flex items-center gap-2 bg-slate-900/50 px-4 py-2.5 rounded-lg border border-slate-800 hover:border-emerald-500/50 shadow-md"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                Sync to Drive
               </button>
            </div>
            

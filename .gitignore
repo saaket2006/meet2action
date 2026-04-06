@@ -6,6 +6,8 @@ backend/venv/
 .env
 .env.*
 .vscode
+backend/secrets/
+performance_guide.md
 
 # Database
 *.sqlite

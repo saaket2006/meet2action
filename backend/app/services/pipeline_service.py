@@ -2,7 +2,7 @@
 
 from fastapi import Request, UploadFile
 from core.pipeline import run_pipeline
-from core.llm_client import OllamaClient
+from core.llm_client import OllamaClient, GeminiClient
 from core.logger import get_logger
 import os
 import shutil
@@ -54,6 +54,18 @@ async def run_analysis(file: UploadFile, request: Request):
         duration = time.time() - start_time
         logger.info(f"Whisper transcription completed in {duration:.3f}s")
 
-    # LLM PIPELINE
-    llm = OllamaClient()
+    # LLM PIPELINE - Allow user to force Ollama to save credits
+    use_ollama = os.getenv("USE_OLLAMA", "false").lower() == "true"
+    
+    if os.getenv("GOOGLE_AI_API_KEY") and not use_ollama:
+        logger.info("Using Gemini for analysis (Fast mode)")
+        llm = GeminiClient()
+    else:
+        if use_ollama:
+            logger.info("USE_OLLAMA=true detected. Forcing local analysis...")
+        else:
+            logger.warning("GOOGLE_AI_API_KEY not found. Using local Ollama (might be slow on CPU)")
+        llm = OllamaClient()
+
+    
     return run_pipeline(transcript, llm)

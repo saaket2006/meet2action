@@ -61,24 +61,28 @@ const MOCK_ANALYSIS: MeetingAnalysis = {
 
 const AppContent: React.FC = () => {
   const [view, setView] = useState<View>('landing');
+  const [isTextFile, setIsTextFile] = useState(false);
   const [status, setStatus] = useState<AnalysisStatus>('idle');
   const [analysis, setAnalysis] = useState<MeetingAnalysis | null>(null);
   const [history, setHistory] = useState<SavedAnalysis[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const { user, openLoginModal } = useAuth();
+  const { user, openLoginModal, idToken, googleAccessToken } = useAuth();
   const userId = user?.email;
+
+
 
   useEffect(() => {
     setHistory(storageService.getHistory(userId));
   }, [userId]);
 
   const handleFileSelect = async (fileData: FileData) => {
-    if (!user) {
+    if (!user || !(idToken || googleAccessToken)) {
       openLoginModal();
       return;
     }
 
+    setIsTextFile(fileData.name.toLowerCase().endsWith('.txt'));
     setStatus('analyzing');
     setError(null);
 
@@ -88,10 +92,18 @@ const AppContent: React.FC = () => {
 
       const response = await fetch('http://localhost:8000/api/analyze', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${idToken || googleAccessToken}`
+        },
         body: formData
       });
 
-      if (!response.ok) throw new Error('Processing failed');
+
+      if (!response.ok) {
+        if (response.status === 429) throw new Error('Rate limit exceeded: 1 file per minute.');
+        throw new Error('Processing failed');
+      }
+
 
       const result: MeetingAnalysis = await response.json();
       setAnalysis(result);
@@ -159,11 +171,15 @@ const AppContent: React.FC = () => {
     return <LandingPage onEnter={handleNavigate} />;
   }
 
+  if (isAnalyzing) {
+    return <LoadingScreen isTextOnly={isTextFile} />;
+  }
+
   return (
     <Layout activeView={view} onNavigate={handleNavigate}>
-      {isAnalyzing && <LoadingScreen />}
       
       <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-700 p-6">
+
         {view === 'integrations' ? (
           <IntegrationsView />
         ) : (
@@ -248,8 +264,9 @@ const AppContent: React.FC = () => {
                               <td className="px-6 py-5 text-right">
                                 <div className="flex items-center justify-end gap-4">
                                   <span className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-[9px] font-space font-black text-blue-500 border border-blue-500/20 uppercase tracking-widest shadow-sm">
-                                    {item.actionItems.length} DETECTED
+                                    {(item.actionItems?.length || 0)} DETECTED
                                   </span>
+
                                   <button
                                     onClick={(e) => handleDeleteHistory(e, item.id)}
                                     className="text-slate-700 hover:text-red-500 transition-colors p-2.5 bg-slate-900/50 rounded-lg hover:bg-red-500/10"

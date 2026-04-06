@@ -1,11 +1,19 @@
 from app.schemas.analysis import SummaryPoint
-from core.llm_client import OllamaClient
+from core.llm_client import OllamaClient, GeminiClient
+
 import json
 import re
+import os
 
 class Summarizer:
-    def __init__(self, llm: OllamaClient = None):
-        self.llm = llm or OllamaClient()
+    def __init__(self, llm = None):
+        if llm:
+            self.llm = llm
+        elif os.getenv("GOOGLE_AI_API_KEY"):
+            self.llm = GeminiClient()
+        else:
+            self.llm = OllamaClient()
+
 
     def enhance_point(self, topic: str, content: str) -> SummaryPoint:
         prompt = f"""
