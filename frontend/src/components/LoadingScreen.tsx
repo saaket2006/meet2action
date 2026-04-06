@@ -27,27 +27,31 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ isTextOnly }) => {
     };
 
     useEffect(() => {
-        // Core safety clamp
-        if (currentStep >= activeSteps.length) {
-            setCurrentStep(Math.max(0, activeSteps.length - 1));
-            return;
-        }
+        // Initial transition to 'Validating Input' (immediate)
+        // Transition to 'AI Transcription' after a brief validation delay
+        const validationTimer = setTimeout(() => {
+            setCurrentStep(1); 
+        }, 1500);
 
-        const stepInterval = setInterval(() => {
-            setCurrentStep((prev) => (prev < activeSteps.length - 1 ? prev + 1 : prev));
-        }, 2500);
-
+        // Progress line animation logic
         const progressInterval = setInterval(() => {
             setProgress((prev) => {
-                const target = ((currentStep + 1) / activeSteps.length) * 100;
-                if (prev < target) return prev + 0.5;
-                if (prev > target) return target; // Quick clamp
+                // Determine target progress based on current step
+                // We cap the progress at ~40% (Transcription Phase) until the real data arrives
+                const targetBase = ((currentStep + 1) / activeSteps.length) * 100;
+                
+                // If we are in Step 2 (Transcribe), we slow down the bar to indicate work is happening
+                // but we NEVER let it cross into Step 3 (Context) until the status changes.
+                const cap = currentStep === 1 ? 38 : targetBase; 
+
+                if (prev < cap) return prev + 0.2;
+                if (prev > cap + 5) return cap; // Clamp back if we jumped
                 return prev;
             });
-        }, 50);
+        }, 100);
 
         return () => {
-            clearInterval(stepInterval);
+            clearTimeout(validationTimer);
             clearInterval(progressInterval);
         };
     }, [currentStep, activeSteps.length]);
