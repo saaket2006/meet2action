@@ -38,7 +38,7 @@ class GeminiClient:
 
 class OllamaClient:
 
-    def __init__(self, model: str = "qwen2.5:7b"):
+    def __init__(self, model: str = "qwen2.5:3b"):
         self.model = model
         self.url = "http://localhost:11434/api/generate"
 
@@ -58,7 +58,7 @@ class OllamaClient:
 
         try:
             logger.info(f"Calling Ollama at {self.url} with model {self.model}")
-            response = requests.post(self.url, json=payload, timeout=60) # Added timeout
+            response = requests.post(self.url, json=payload, timeout=300)
             response.raise_for_status()
             
             result = response.json()

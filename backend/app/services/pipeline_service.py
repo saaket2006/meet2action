@@ -11,61 +11,66 @@ import time
 logger = get_logger("ASR")
 
 async def run_analysis(file: UploadFile, request: Request):
-
-    os.makedirs("temp", exist_ok=True)
-
-    file_extension = os.path.splitext(file.filename)[1].lower()
-
-    # CASE 1: TEXT FILE → Skip ASR
-    if file_extension == ".txt":
-        logger.info("Text file detected. Skipping Whisper transcription.")
-
-        contents = await file.read()
-
-        if not contents:
-            raise ValueError("Uploaded text file is empty.")
-
-        transcript = contents.decode("utf-8").strip()
-
-        logger.info("Text transcript loaded successfully.")
-
-    # CASE 2: AUDIO/VIDEO → Use ASR
+    """
+    Complete analysis pipeline: Transcribe -> Extract -> Action Items
+    """
+    logger.info(f"Analyzing uploaded file: {file.filename}")
+    
+    # 1. TRANSCRIPTION
+    if file.filename.lower().endswith('.txt'):
+        logger.info("[ASR] Text file detected. Skipping Whisper transcription.")
+        content = await file.read()
+        transcript = content.decode('utf-8')
     else:
-        file_path = os.path.join("temp", file.filename)
+        logger.info("[ASR] Audio file detected. Starting Whisper transcription...")
+        temp_path = f"temp_{file.filename}"
+        with open(temp_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
-            raise ValueError("Uploaded audio file is empty or corrupted.")
-
-        model = request.app.state.whisper_model
-
-        logger.info("Whisper transcription started")
         start_time = time.time()
+        
+        # USE the pre-initialized model from app.state!
+        whisper_model = getattr(request.app.state, 'whisper_model', None)
+        if not whisper_model:
+            logger.warning("[ASR] Whisper model not found in app.state. Initializing on-the-fly...")
+            from faster_whisper import WhisperModel
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            whisper_model = WhisperModel("base", device=device, compute_type="float16" if device == "cuda" else "int8")
 
-        segments, info = model.transcribe(
-            file_path,
-            beam_size=5
-        )
-
-        transcript = " ".join([segment.text for segment in segments]).strip()
-
+        segments, _ = whisper_model.transcribe(temp_path)
+        transcript = " ".join([s.text for s in segments])
+        
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+            
         duration = time.time() - start_time
         logger.info(f"Whisper transcription completed in {duration:.3f}s")
 
+
     # LLM PIPELINE - Allow user to force Ollama to save credits
-    use_ollama = os.getenv("USE_OLLAMA", "false").lower() == "true"
-    
-    if os.getenv("GOOGLE_AI_API_KEY") and not use_ollama:
-        logger.info("Using Gemini for analysis (Fast mode)")
+    is_small_content = len(transcript) < 1000
+    use_ollama_forced = os.getenv("USE_OLLAMA", "false").lower() == "true"
+    api_key = os.getenv("GOOGLE_AI_API_KEY")
+
+    # Policy: Use Ollama for larger files to save credits. Use Gemini for small tasks (<1000 chars) if available.
+    if api_key and is_small_content and not use_ollama_forced:
+        logger.info(f"Small content detected ({len(transcript)} chars). Using Gemini for speed.")
         llm = GeminiClient()
     else:
-        if use_ollama:
-            logger.info("USE_OLLAMA=true detected. Forcing local analysis...")
-        else:
-            logger.warning("GOOGLE_AI_API_KEY not found. Using local Ollama (might be slow on CPU)")
+        logger.info(f"Content length is {len(transcript)} chars. Using Ollama as the primary engine.")
         llm = OllamaClient()
 
     
-    return run_pipeline(transcript, llm)
+    try:
+        return run_pipeline(transcript, llm)
+    except Exception as e:
+        logger.warning(f"Primary LLM failed: {e}")
+        # If Ollama failed and we have Gemini available, try it as a fallback
+        if isinstance(llm, OllamaClient) and api_key and not use_ollama_forced:
+            logger.info("Local LLM failed or timed out. Falling back to Gemini...")
+            fallback_llm = GeminiClient()
+            return run_pipeline(transcript, fallback_llm)
+        raise e
+

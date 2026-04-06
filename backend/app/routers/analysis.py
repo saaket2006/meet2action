@@ -6,7 +6,7 @@ import time
 router = APIRouter()
 
 # Simple in-memory rate limiter: {user_id: last_upload_timestamp}
-COOLDOWN_SECONDS = 60
+COOLDOWN_SECONDS = 30
 user_cooldowns = {}
 
 @router.post("/api/analyze")
