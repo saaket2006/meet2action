@@ -9,10 +9,12 @@ class Summarizer:
     def __init__(self, llm = None):
         if llm:
             self.llm = llm
-        elif os.getenv("GOOGLE_AI_API_KEY"):
-            self.llm = GeminiClient()
         else:
-            self.llm = OllamaClient()
+            use_ollama = os.getenv("USE_OLLAMA", "false").lower() == "true"
+            if os.getenv("GOOGLE_AI_API_KEY") and not use_ollama:
+                self.llm = GeminiClient()
+            else:
+                self.llm = OllamaClient()
 
 
     def enhance_point(self, topic: str, content: str) -> SummaryPoint:
