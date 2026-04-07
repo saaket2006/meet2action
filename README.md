@@ -21,13 +21,13 @@ The system is built with an agent-orchestrated backend and a modern frontend int
 
     Meeting Input (Audio / Text)
             ↓
-    Faster-Whisper (GPU ASR)
+    Faster-Whisper (GPU ASR - CUDA float16)
             ↓
     Transcript
             ↓
-    Qwen 7B (Ollama)
+    Summarizer Agent (Hybrid: Ollama / Gemini)
             ↓
-    Strict JSON Output
+    Strict JSON Output / Interactive Clarity Enhancement
             ↓
     Response Mapper
             ↓
@@ -37,12 +37,12 @@ The system is built with an agent-orchestrated backend and a modern frontend int
 
 ## Key Features
 
--   GPU-accelerated Speech-to-Text using Faster-Whisper   
--   Local LLM inference via Ollama (Qwen 2.5 7B / 3B)   
--   Strict JSON enforcement from LLM   
--   Markdown stripping and structured validation   
--   Modular agent-based backend architecture   
--   Clean React + TypeScript frontend   
+-   GPU-accelerated Speech-to-Text using Faster-Whisper (CUDA float16)   
+-   Hybrid LLM inference: Local (via Ollama) or Cloud fallback (via Google Gemini)   
+-   Interactive Summary Clarity Enhancement with single-click optimization   
+-   Strict JSON enforcement and schema validation using Pydantic   
+-   Modular agent-orchestration for transcript analysis   
+-   Clean React + TypeScript frontend with specialized "MeetAction" metrics   
 
 ------------------------------------------------------------------------
 
@@ -64,10 +64,11 @@ The platform is organized into a clean, modular architecture:
 ## Tech Stack
 
 ### Backend
-- **FastAPI**: Modern, high-performance web framework.
-- **Faster-Whisper**: GPU-accelerated speech-to-text (CTranslate2).
-- **Ollama**: Local LLM inference (Qwen 2.5 7B/3B).
-- **Python 3.10+**
+- **FastAPI**: Modern, high-performance Python-based web framework.
+- **Faster-Whisper**: GPU-accelerated speech-to-text (using CTranslate2 backend).
+- **Ollama**: Local inference server for models like Qwen 2.5 and Llama 3.
+- **Google Generative AI**: SDK for high-speed cloud-based summary refinements (Gemini).
+- **Python 3.10+** (tested on Windows/Ubuntu)
 
 ### Frontend
 - **React 19**: Modern UI library.
@@ -85,11 +86,12 @@ The platform is organized into a clean, modular architecture:
 
 ## Performance Benchmarks (Local)
 
-Test Case: 7-minute meeting audio
+Test Case: 7-minute meeting audio (CUDA-Accelerated RTX 2050)
 
--   Faster-Whisper (GPU): ~42 seconds   
--   Qwen 7B inference: ~28--30 seconds   
--   Total end-to-end processing: ~70--75 seconds
+-   **ASR (Transcription)**: ~42 seconds   
+-   **Local LLM (Qwen 7B)**: ~28--30 seconds   
+-   **Cloud LLM (Gemini)**: ~2--5 seconds   
+-   **Total end-to-end processing**: ~70--75 seconds (Local) / < 50 seconds (Hybrid)
 
 ------------------------------------------------------------------------
 
@@ -162,3 +164,30 @@ npm run dev
 ```
 
 Frontend runs at: http://localhost:3000
+
+------------------------------------------------------------------------
+
+### 6. Environment Configuration
+
+Create a `.env` file in the root directory for full functionality:
+
+```bash
+# --- LLM Options ---
+# Set to "true" to force use of Ollama even if Gemini key is present
+USE_OLLAMA=false 
+
+# Required for Gemini Cloud Fallback / Fast Enhancement
+GOOGLE_AI_API_KEY=your_google_api_key_here
+
+# --- Other Vars ---
+# (Add any additional Firebase or storage configurations here)
+```
+
+------------------------------------------------------------------------
+
+### 7. CUDA Optimization Note
+
+For maximum speed on NVIDIA GPUs, ensure:
+1. CUDA Toolkit 12.4+ is installed.
+2. The backend is correctly detecting your GPU (should see `Initializing Faster-Whisper model on GPU (cuda)...` in logs).
+3. `zlibwapi.dll` is in your system path (if running on Windows).
